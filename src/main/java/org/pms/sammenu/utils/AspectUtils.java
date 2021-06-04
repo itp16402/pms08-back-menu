@@ -87,7 +87,10 @@ public class AspectUtils {
         Set<UserRole> userRoles = fetchUserRoles(request);
 
         return userRoles.stream()
-                .map(UserRole::getAuthority)
+                .map(userRole -> Authority.builder().id(userRole.getAuthority()
+                        .getId())
+                        .description(AuthorityType.fromCode(userRole.getAuthority().getId()).description())
+                        .build())
                 .collect(toSet());
     }
 

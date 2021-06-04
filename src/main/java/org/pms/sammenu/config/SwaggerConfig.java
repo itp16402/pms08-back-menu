@@ -65,8 +65,9 @@ public class SwaggerConfig {
     private Predicate<String> mainPath() {
 
         return or(
-                regex("/register.*"),
-                regex("/authenticate.*")
+                regex("/form-lists.*"),
+                regex("/user-roles.*"),
+                regex("/form-views.*")
         );
     }
 

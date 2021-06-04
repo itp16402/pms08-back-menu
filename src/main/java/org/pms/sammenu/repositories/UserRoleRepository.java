@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -31,6 +32,9 @@ public interface UserRoleRepository extends JpaRepository<UserRole, Long> {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     Set<UserRole> findByUser_IdAndProject(Long userId, Project project);
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    List<UserRole> findByUser_Id(Long userId);
 
     @Query(value = "select distinct(userid) from userrole where projectid = :projectId",
             nativeQuery = true)

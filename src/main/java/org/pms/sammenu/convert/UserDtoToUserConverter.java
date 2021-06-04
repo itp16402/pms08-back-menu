@@ -35,7 +35,7 @@ public class UserDtoToUserConverter implements Converter<UserDto, User> {
         List<Authority> authorities = new ArrayList<>();
 
         authorities.add(Authority.builder()
-                .id(3)
+                .id((short) 3)
                 .description(AuthorityType.MEMBER.description())
                 .build());
 

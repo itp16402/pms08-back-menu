@@ -14,7 +14,7 @@ public class Authority {
 
 	@Id
 	@Column(name = "id")
-	private Integer id;
+	private Short id;
 
 	@Column(name = "role")
 	private String description;

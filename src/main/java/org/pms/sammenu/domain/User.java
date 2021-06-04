@@ -10,6 +10,8 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(exclude = {"authorities"})
+@ToString(exclude = {"authorities"})
 @Entity
 @Table(name = "public.user")
 public class User {
