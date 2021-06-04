@@ -1,11 +1,14 @@
 package org.pms.sammenu.convert;
 
 
+import org.pms.sammenu.domain.Authority;
 import org.pms.sammenu.domain.User;
 import org.pms.sammenu.dto.UserDto;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.StringJoiner;
 
 @Component
@@ -18,6 +21,9 @@ public class UserToUserDtoConverter implements Converter<User, UserDto> {
                 .id(user.getId())
                 .username(user.getUsername())
                 .password(user.getPassword())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
                 .active(user.getActive() == 1)
                 .authorities(buildAuthorities(user))
                 .build();
@@ -27,7 +33,9 @@ public class UserToUserDtoConverter implements Converter<User, UserDto> {
 
         StringJoiner authorities = new StringJoiner(",");
 
-        user.getAuthorities().forEach(authority -> {
+        Set<Authority> authoritiesSet = new LinkedHashSet<>(user.getAuthorities());
+
+        authoritiesSet.forEach(authority -> {
 
             authorities.add(authority.getDescription());
         });

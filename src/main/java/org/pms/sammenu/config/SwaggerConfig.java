@@ -66,7 +66,9 @@ public class SwaggerConfig {
 
         return or(
                 regex("/form-lists.*"),
+                regex("/form-roles.*"),
                 regex("/user-roles.*"),
+                regex("/users.*"),
                 regex("/projects.*"),
                 regex("/form-views.*")
         );

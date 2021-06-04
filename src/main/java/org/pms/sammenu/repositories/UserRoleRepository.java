@@ -58,8 +58,8 @@ public interface UserRoleRepository extends JpaRepository<UserRole, Long> {
 
     Optional<UserRole> findByUser_IdAndProjectAndAuthority(Long userId, Project project, Authority authority);
 
-    @Query(value = "select m.* from memberrole m " +
-            "inner join formrole f on f.memberroleid = m.id " +
+    @Query(value = "select m.* from userrole m " +
+            "inner join formrole f on f.userroleid = m.id " +
             "inner join formlist l on f.formlistid = l.id " +
             "where l.formname = :formName and m.roleid = 3 and m.projectid = :projectId",
             nativeQuery = true)
