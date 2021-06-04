@@ -4,11 +4,15 @@ import lombok.*;
 
 import javax.persistence.*;
 import java.time.Instant;
+import java.util.List;
+import java.util.Set;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(exclude = {"authorities"})
+@ToString(exclude = {"authorities"})
 @Entity
 @Table(name = "project")
 public class Project {
@@ -40,4 +44,10 @@ public class Project {
 
     @Column(name = "ordertypecomments")
     private String orderTypeComments;
+
+    @ManyToMany(fetch= FetchType.EAGER)
+    @JoinTable(name = "userrole", joinColumns =
+    @JoinColumn(name = "projectid"), inverseJoinColumns = @JoinColumn(name = "roleid")
+    )
+    private List<Authority> authorities;
 }

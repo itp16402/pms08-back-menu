@@ -2,6 +2,7 @@ package org.pms.sammenu.repositories;
 
 import org.pms.sammenu.domain.Authority;
 import org.pms.sammenu.domain.Project;
+import org.pms.sammenu.domain.User;
 import org.pms.sammenu.domain.UserRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -35,6 +36,9 @@ public interface UserRoleRepository extends JpaRepository<UserRole, Long> {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     List<UserRole> findByUser_Id(Long userId);
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    List<UserRole> findByUser_Username(String username);
 
     @Query(value = "select distinct(userid) from userrole where projectid = :projectId",
             nativeQuery = true)
