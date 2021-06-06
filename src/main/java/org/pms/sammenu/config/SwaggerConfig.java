@@ -70,6 +70,7 @@ public class SwaggerConfig {
                 regex("/user-roles.*"),
                 regex("/users.*"),
                 regex("/projects.*"),
+                regex("/basic-info.*"),
                 regex("/form-views.*")
         );
     }
