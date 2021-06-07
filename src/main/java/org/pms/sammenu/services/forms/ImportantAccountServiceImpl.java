@@ -8,7 +8,12 @@ import org.pms.sammenu.domain.forms.important_accounts.ImportantAccountAdd;
 import org.pms.sammenu.dto.forms.important_accounts.ImportantAccountAddRequestDto;
 import org.pms.sammenu.dto.forms.important_accounts.ImportantAccountDto;
 import org.pms.sammenu.dto.forms.important_accounts.ImportantAccountRequestDto;
+import org.pms.sammenu.enums.FormStatus;
 import org.pms.sammenu.exceptions.ResourceNotFoundException;
+import org.pms.sammenu.redis.BalanceSheetDictionaryRedis;
+import org.pms.sammenu.redis.ImportantAccountAddRedis;
+import org.pms.sammenu.redis.ImportantAccountRedis;
+import org.pms.sammenu.redis.ImportantAccountRedisRepository;
 import org.pms.sammenu.repositories.BalanceSheetDictionaryRepository;
 import org.pms.sammenu.repositories.important_accounts.ImportantAccountRepository;
 import org.pms.sammenu.utils.BalanceSheetUtils;
@@ -32,6 +37,7 @@ import java.util.stream.Collectors;
 public class ImportantAccountServiceImpl implements ImportantAccountService {
 
     private ImportantAccountRepository importantAccountRepository;
+    private ImportantAccountRedisRepository importantAccountRedisRepository;
     private BalanceSheetDictionaryRepository balanceSheetDictionaryRepository;
     private ConversionService conversionService;
     private BalanceSheetUtils balanceSheetUtils;
@@ -41,12 +47,14 @@ public class ImportantAccountServiceImpl implements ImportantAccountService {
 
     @Autowired
     public ImportantAccountServiceImpl(ImportantAccountRepository importantAccountRepository,
+                                       ImportantAccountRedisRepository importantAccountRedisRepository,
                                        BalanceSheetDictionaryRepository balanceSheetDictionaryRepository,
                                        ConversionService conversionService, BalanceSheetUtils balanceSheetUtils,
                                        ProjectUtils projectUtils,
                                        EssentialSizeUtils essentialSizeUtils,
                                        FormUtils formUtils) {
         this.importantAccountRepository = importantAccountRepository;
+        this.importantAccountRedisRepository = importantAccountRedisRepository;
         this.balanceSheetDictionaryRepository = balanceSheetDictionaryRepository;
         this.conversionService = conversionService;
         this.balanceSheetUtils = balanceSheetUtils;
@@ -60,19 +68,33 @@ public class ImportantAccountServiceImpl implements ImportantAccountService {
 
         log.info("Fetch ImportantAccount by project-sam[id: {}] start", projectId);
 
+        ImportantAccountDto importantAccountDto;
         Project project = projectUtils.fetchProject(projectId);
 
+        FormStatus status = formUtils.viewFormStatus(projectId, formListId);
         Optional<ImportantAccount> importantAccountOptional = importantAccountRepository
                 .findImportantAccountByProject(project);
 
-        if (!importantAccountOptional.isPresent())
-            importantAccountOptional = Optional.ofNullable(initialSave(project));
+        if (!ObjectUtils.isEmpty(status) && status.equals(FormStatus.SAVED) && importantAccountOptional.isPresent()){
 
-        ImportantAccountDto importantAccountDto = importantAccountOptional
-                .map(importantAccount -> conversionService.convert(importantAccount, ImportantAccountDto.class))
-                .orElse(new ImportantAccountDto());
+            Optional<ImportantAccountRedis> importantAccountRedisOptional = importantAccountRedisRepository
+                    .findByProjectId(projectId);
 
-        importantAccountDto.setStatus(formUtils.viewFormStatus(projectId, formListId));
+            importantAccountDto = importantAccountRedisOptional
+                    .map(importantAccount -> conversionService.convert(importantAccount, ImportantAccountDto.class))
+                    .orElse(new ImportantAccountDto());
+        }
+        else {
+
+            if (!importantAccountOptional.isPresent())
+                importantAccountOptional = Optional.ofNullable(initialSave(project));
+
+            importantAccountDto = importantAccountOptional
+                    .map(importantAccount -> conversionService.convert(importantAccount, ImportantAccountDto.class))
+                    .orElse(new ImportantAccountDto());
+        }
+
+        importantAccountDto.setStatus(status);
 
         log.info("Fetch ImportantAccount by project-sam[id: {}] end", projectId);
 
@@ -87,22 +109,43 @@ public class ImportantAccountServiceImpl implements ImportantAccountService {
         if (ObjectUtils.isEmpty(importantAccountRequestDto))
             throw new ResourceNotFoundException("ImportantAccount to be saved is empty");
 
-        Project project = projectUtils.fetchProject(projectId);
+        Double performanceMateriality = essentialSizeUtils.getPerformanceMateriality(projectId);
+        performanceMateriality = !ObjectUtils.isEmpty(performanceMateriality) ? performanceMateriality : 0.0;
 
-        ImportantAccount importantAccount = ImportantAccount.builder()
-                .id(importantAccountRequestDto.getId())
-                .perAmount(essentialSizeUtils.getPerformanceMateriality(projectId))
-                .project(project)
-                .build();
+        if (!ObjectUtils.isEmpty(importantAccountRequestDto.getStatus()) &&
+                importantAccountRequestDto.getStatus().equals(FormStatus.SAVED)){
 
-        importantAccount
-                .setImportantAccountAddList(buildImportantAccountAddList(importantAccountRequestDto, importantAccount));
+            ImportantAccountRedis importantAccount = ImportantAccountRedis.builder()
+                    .id(importantAccountRequestDto.getId())
+                    .perAmount(performanceMateriality)
+                    .projectId(projectId)
+                    .build();
 
-        ImportantAccount savedImportantAccount = importantAccountRepository.save(importantAccount);
+            importantAccount.setImportantAccountAddList(buildImportantAccountAddList(importantAccountRequestDto));
+
+            ImportantAccountRedis savedImportantAccount = importantAccountRedisRepository.save(importantAccount);
+
+            log.info("Save new ImportantAccount[id: {}] end", savedImportantAccount.getId());
+        }
+        else {
+
+            Project project = projectUtils.fetchProject(projectId);
+
+            ImportantAccount importantAccount = ImportantAccount.builder()
+                    .id(importantAccountRequestDto.getId())
+                    .perAmount(performanceMateriality)
+                    .project(project)
+                    .build();
+
+            importantAccount
+                    .setImportantAccountAddList(buildImportantAccountAddList(importantAccountRequestDto, importantAccount));
+
+            ImportantAccount savedImportantAccount = importantAccountRepository.save(importantAccount);
+
+            log.info("Save new ImportantAccount[id: {}] end", savedImportantAccount.getId());
+        }
 
         formUtils.changeFormStatus(request, projectId, formListId, importantAccountRequestDto.getStatus());
-
-        log.info("Save new ImportantAccount[id: {}] end", savedImportantAccount.getId());
     }
 
     private ImportantAccount initialSave(Project project){
@@ -114,14 +157,33 @@ public class ImportantAccountServiceImpl implements ImportantAccountService {
                 .project(project)
                 .build();
 
-        importantAccount.setImportantAccountAddList(initializeImportantAccountAddList(importantAccount));
+        List<BalanceSheetDictionary> lines = balanceSheetDictionaryRepository.findAll();
 
-        return importantAccountRepository.save(importantAccount);
+        importantAccount.setImportantAccountAddList(initializeImportantAccountAddList(lines, importantAccount));
+
+        ImportantAccount savedImportantAccount = importantAccountRepository.save(importantAccount);
+
+        if (!ObjectUtils.isEmpty(savedImportantAccount))
+            initializeImportantAccountRedis(lines, performanceMateriality, project.getId());
+
+        return savedImportantAccount;
     }
 
-    private List<ImportantAccountAdd> initializeImportantAccountAddList(ImportantAccount importantAccount){
+    private void initializeImportantAccountRedis(List<BalanceSheetDictionary> lines,
+                                                 Double performanceMateriality,
+                                                 Long projectId){
 
-        List<BalanceSheetDictionary> lines = balanceSheetDictionaryRepository.findAll();
+        ImportantAccountRedis importantAccount = ImportantAccountRedis.builder()
+                .perAmount(!ObjectUtils.isEmpty(performanceMateriality) ? performanceMateriality : 0.0)
+                .projectId(projectId)
+                .importantAccountAddList(initializeImportantAccountAddList(lines))
+                .build();
+
+        importantAccountRedisRepository.save(importantAccount);
+    }
+
+    private List<ImportantAccountAdd> initializeImportantAccountAddList(List<BalanceSheetDictionary> lines,
+                                                                        ImportantAccount importantAccount){
 
         return lines.stream()
                 .filter(line -> line.getAmount() != 0)
@@ -138,6 +200,26 @@ public class ImportantAccountServiceImpl implements ImportantAccountService {
                         .isImportantRisk((short) 0)
                         .isImportantAssessment((short) 0)
                         .importantAccount(importantAccount)
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    private List<ImportantAccountAddRedis> initializeImportantAccountAddList(List<BalanceSheetDictionary> lines){
+
+        return lines.stream()
+                .filter(line -> line.getAmount() != 0)
+                .map(line -> ImportantAccountAddRedis.builder()
+                        .balanceSheetDictionary(buildBalanceSheetDictionaryRedis(line))
+                        .important((short) 0)
+                        .y((short) 0)
+                        .pd((short) 0)
+                        .ak((short) 0)
+                        .ap((short) 0)
+                        .dd((short) 0)
+                        .tp((short) 0)
+                        .assessment((short) 0)
+                        .isImportantRisk((short) 0)
+                        .isImportantAssessment((short) 0)
                         .build())
                 .collect(Collectors.toList());
     }
@@ -183,5 +265,57 @@ public class ImportantAccountServiceImpl implements ImportantAccountService {
                 });
 
         return importantAccountAddList;
+    }
+
+    private List<ImportantAccountAddRedis> buildImportantAccountAddList(ImportantAccountRequestDto importantAccountRequestDto){
+
+        List<ImportantAccountAddRedis> importantAccountAddList = new ArrayList<>();
+
+        List<ImportantAccountAddRequestDto> importantAccountAddRequestDtoList = importantAccountRequestDto
+                .getImportantAccountAddRequestDtoList();
+
+        if (ObjectUtils.isEmpty(importantAccountAddRequestDtoList) || importantAccountAddRequestDtoList.isEmpty())
+            return null;
+
+        importantAccountAddRequestDtoList.forEach(importantAccountAddRequestDto -> {
+
+                    if (!ObjectUtils.isEmpty(importantAccountAddRequestDto.getId()) &&
+                            !ObjectUtils.isEmpty(importantAccountAddRequestDto.getLineId())){
+
+                        BalanceSheetDictionary balanceSheetDictionary = balanceSheetUtils
+                                        .buildBalanceSheetDictionary(importantAccountAddRequestDto.getLineId());
+
+                        ImportantAccountAddRedis importantAccountAdd = ImportantAccountAddRedis.builder()
+                                .id(importantAccountAddRequestDto.getId())
+                                .balanceSheetDictionary(buildBalanceSheetDictionaryRedis(balanceSheetDictionary))
+                                .important(importantAccountAddRequestDto.isImportant() ? (short) 1: (short) 0)
+                                .y(importantAccountAddRequestDto.getY())
+                                .pd(importantAccountAddRequestDto.getPd())
+                                .ak(importantAccountAddRequestDto.getAk())
+                                .ap(importantAccountAddRequestDto.getAp())
+                                .dd(importantAccountAddRequestDto.getDd())
+                                .tp(importantAccountAddRequestDto.getTp())
+                                .assessment(importantAccountAddRequestDto.isImportant() ?
+                                        ((importantAccountAddRequestDto.isAssessment() ? (short) 1: (short) 0)) : (short) 0)
+                                .isImportantAssessment(importantAccountAddRequestDto.isImportantAssessment() ? (short) 1: (short) 0)
+                                .isImportantRisk(importantAccountAddRequestDto.isImportantRisk() ? (short) 1: (short) 0)
+                                .build();
+
+                        importantAccountAddList.add(importantAccountAdd);
+                    }
+                });
+
+        return importantAccountAddList;
+    }
+
+    private BalanceSheetDictionaryRedis buildBalanceSheetDictionaryRedis(BalanceSheetDictionary balanceSheetDictionary){
+
+        return BalanceSheetDictionaryRedis.builder()
+                .id(balanceSheetDictionary.getId())
+                .line(balanceSheetDictionary.getLine())
+                .language(balanceSheetDictionary.getLanguage())
+                .type(balanceSheetDictionary.getType())
+                .amount(balanceSheetDictionary.getAmount())
+                .build();
     }
 }
