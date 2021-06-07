@@ -71,6 +71,8 @@ public class SwaggerConfig {
                 regex("/users.*"),
                 regex("/projects.*"),
                 regex("/basic-info.*"),
+                regex("/essential-sizes.*"),
+                regex("/flowcharts.*"),
                 regex("/form-views.*")
         );
     }

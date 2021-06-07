@@ -1,4 +1,4 @@
-package org.pms.sammenu.convert.forms;
+package org.pms.sammenu.convert.forms.basic_info;
 
 import org.pms.sammenu.domain.forms.BasicInfo;
 import org.pms.sammenu.dto.forms.BasicInfoDto;

@@ -29,4 +29,13 @@ public class ProjectController {
 
         return projectService.fetchProjectsByUsername(username);
     }
+
+    @GetMapping(value = "/{username}/{projectId}",
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    ProjectResponseDto findProjectsById(@PathVariable String username, @PathVariable Long projectId, Principal principal) {
+
+        log.info("Fetch Project[{}]", projectId);
+
+        return projectService.fetchProjectById(projectId);
+    }
 }
