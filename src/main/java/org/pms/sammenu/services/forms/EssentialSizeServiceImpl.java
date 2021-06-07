@@ -20,6 +20,7 @@ import org.pms.sammenu.enums.BalanceSheetType;
 import org.pms.sammenu.enums.FormType;
 import org.pms.sammenu.enums.Locale;
 import org.pms.sammenu.exceptions.ResourceNotFoundException;
+import org.pms.sammenu.exceptions.UnacceptableActionException;
 import org.pms.sammenu.repositories.BalanceSheetDictionaryRepository;
 import org.pms.sammenu.repositories.essential_size.*;
 import org.pms.sammenu.utils.*;
@@ -185,14 +186,12 @@ public class EssentialSizeServiceImpl implements EssentialSizeService {
         EssentialSizeOverall essentialSizeOverall = conversionService
                 .convert(essentialSizeOverallRequestDto, EssentialSizeOverall.class);
 
-        Map<String, Double> limits = getLimits(essentialSizeOverall.getBase().getId(), essentialSizeOverall.getOverAmount());
-        essentialSizeOverall.setMinLimit(limits.get(MIN_LIMIT));
-        essentialSizeOverall.setMaxLimit(limits.get(MAX_LIMIT));
-
         if (essentialSizeOverall.getOverAmount() < essentialSizeOverall.getMinLimit() ||
                 essentialSizeOverall.getOverAmount() > essentialSizeOverall.getMaxLimit())
-            essentialSizeOverall.setOverAmount(NumericUtils.roundNumberToCentimeters(
-                    essentialSizeOverall.getOverAmount() * essentialSizeOverall.getPercentage() / 100));
+            throw new  UnacceptableActionException("OverAmount outside the limits");
+
+        essentialSizeOverall.setOverAmount(NumericUtils.roundNumberToCentimeters(
+                essentialSizeOverall.getOverAmount() * essentialSizeOverall.getPercentage() / 100));
 
         essentialSizeOverall.setEssentialSize(essentialSize);
 
@@ -266,6 +265,7 @@ public class EssentialSizeServiceImpl implements EssentialSizeService {
         List<EssentialSizePerformance> essentialSizePerformanceList = Stream
                 .of(EssentialSizePerformance.builder()
                         .year(project.getYear())
+                        .percentage(65.0)
                         .essentialSize(essentialSize)
                         .build())
                 .collect(Collectors.toList());

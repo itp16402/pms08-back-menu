@@ -9,8 +9,8 @@ import javax.persistence.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(exclude = {"importantAccount", "a1"})
-@ToString(exclude = {"importantAccount", "a1"})
+@EqualsAndHashCode(exclude = {"importantAccount", "balanceSheetDictionary"})
+@ToString(exclude = {"importantAccount", "balanceSheetDictionary"})
 @Entity
 @Table(name = "add231")
 public class ImportantAccountAdd {

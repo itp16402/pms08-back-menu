@@ -12,7 +12,7 @@ import javax.persistence.*;
 @EqualsAndHashCode(exclude = {"base", "add", "subtract"})
 @ToString(exclude = {"base", "add", "subtract"})
 @Entity
-@Table(name = "materiality_base")
+@Table(name = "materialitybase")
 public class MaterialityBase {
 
     @Id
