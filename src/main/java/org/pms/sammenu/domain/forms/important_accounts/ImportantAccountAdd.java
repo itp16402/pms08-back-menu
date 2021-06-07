@@ -22,7 +22,7 @@ public class ImportantAccountAdd {
 
     @ManyToOne(fetch= FetchType.LAZY)
     @JoinColumn(name = "isologismosdictionaryid")
-    private BalanceSheetDictionary a1;
+    private BalanceSheetDictionary balanceSheetDictionary;
 
     @Column(name = "isimportant")
     private Short important;
