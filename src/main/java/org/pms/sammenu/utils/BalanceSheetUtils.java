@@ -46,6 +46,6 @@ public class BalanceSheetUtils {
         if (!basicInfo.isPresent())
             throw new ResourceNotFoundException("There is not basic-info for order: " + projectId);
 
-        return BalanceSheetType.fromValue(basicInfo.get().getBalanceSheetType());
+        return BalanceSheetType.fromValue(0);
     }
 }
