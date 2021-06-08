@@ -164,22 +164,24 @@ public class ImportantAccountServiceImpl implements ImportantAccountService {
         ImportantAccount savedImportantAccount = importantAccountRepository.save(importantAccount);
 
         if (!ObjectUtils.isEmpty(savedImportantAccount))
-            initializeImportantAccountRedis(lines, performanceMateriality, project.getId());
+            initializeImportantAccountRedis(performanceMateriality, project.getId(), savedImportantAccount);
 
         return savedImportantAccount;
     }
 
-    private void initializeImportantAccountRedis(List<BalanceSheetDictionary> lines,
-                                                 Double performanceMateriality,
-                                                 Long projectId){
+    private void initializeImportantAccountRedis(Double performanceMateriality,
+                                                 Long projectId,
+                                                 ImportantAccount savedImportantAccount){
 
         ImportantAccountRedis importantAccount = ImportantAccountRedis.builder()
+                .id(savedImportantAccount.getId())
                 .perAmount(!ObjectUtils.isEmpty(performanceMateriality) ? performanceMateriality : 0.0)
                 .projectId(projectId)
-                .importantAccountAddList(initializeImportantAccountAddList(lines))
+                .importantAccountAddList(initializeImportantAccountAddList(savedImportantAccount.getImportantAccountAddList()))
                 .build();
 
-        importantAccountRedisRepository.save(importantAccount);
+        importantAccount = importantAccountRedisRepository.save(importantAccount);
+        System.out.println(importantAccount);
     }
 
     private List<ImportantAccountAdd> initializeImportantAccountAddList(List<BalanceSheetDictionary> lines,
@@ -204,22 +206,23 @@ public class ImportantAccountServiceImpl implements ImportantAccountService {
                 .collect(Collectors.toList());
     }
 
-    private List<ImportantAccountAddRedis> initializeImportantAccountAddList(List<BalanceSheetDictionary> lines){
+    private List<ImportantAccountAddRedis> initializeImportantAccountAddList(List<ImportantAccountAdd> importantAccountAdds){
 
-        return lines.stream()
-                .filter(line -> line.getAmount() != 0)
-                .map(line -> ImportantAccountAddRedis.builder()
-                        .balanceSheetDictionary(buildBalanceSheetDictionaryRedis(line))
-                        .important((short) 0)
-                        .y((short) 0)
-                        .pd((short) 0)
-                        .ak((short) 0)
-                        .ap((short) 0)
-                        .dd((short) 0)
-                        .tp((short) 0)
-                        .assessment((short) 0)
-                        .isImportantRisk((short) 0)
-                        .isImportantAssessment((short) 0)
+        return importantAccountAdds.stream()
+                .filter(importantAccountAdd -> importantAccountAdd.getBalanceSheetDictionary().getAmount() != 0)
+                .map(importantAccountAdd -> ImportantAccountAddRedis.builder()
+                        .id(importantAccountAdd.getId())
+                        .balanceSheetDictionary(buildBalanceSheetDictionaryRedis(importantAccountAdd.getBalanceSheetDictionary()))
+                        .important(importantAccountAdd.getImportant())
+                        .y(importantAccountAdd.getY())
+                        .pd(importantAccountAdd.getPd())
+                        .ak(importantAccountAdd.getAk())
+                        .ap(importantAccountAdd.getAp())
+                        .dd(importantAccountAdd.getDd())
+                        .tp(importantAccountAdd.getTp())
+                        .assessment(importantAccountAdd.getAssessment())
+                        .isImportantRisk(importantAccountAdd.getIsImportantRisk())
+                        .isImportantAssessment(importantAccountAdd.getIsImportantAssessment())
                         .build())
                 .collect(Collectors.toList());
     }
