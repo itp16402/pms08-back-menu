@@ -8,6 +8,7 @@ import org.pms.sammenu.domain.forms.essential_size.EssentialSizeOverall;
 import org.pms.sammenu.domain.forms.essential_size.EssentialSizePerformance;
 import org.pms.sammenu.domain.forms.essential_size.base.Base;
 import org.pms.sammenu.domain.forms.essential_size.base.MaterialityBase;
+import org.pms.sammenu.domain.forms.important_accounts.ImportantAccount;
 import org.pms.sammenu.dto.forms.essential_size.base.BaseDto;
 import org.pms.sammenu.dto.forms.essential_size.base.BaseResponseDto;
 import org.pms.sammenu.dto.forms.essential_size.base.MaterialityBaseDto;
@@ -21,8 +22,10 @@ import org.pms.sammenu.enums.FormType;
 import org.pms.sammenu.enums.Locale;
 import org.pms.sammenu.exceptions.ResourceNotFoundException;
 import org.pms.sammenu.exceptions.UnacceptableActionException;
-import org.pms.sammenu.repositories.BalanceSheetDictionaryRepository;
+import org.pms.sammenu.redis.ImportantAccountRedis;
+import org.pms.sammenu.redis.ImportantAccountRedisRepository;
 import org.pms.sammenu.repositories.essential_size.*;
+import org.pms.sammenu.repositories.important_accounts.ImportantAccountRepository;
 import org.pms.sammenu.utils.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
@@ -49,7 +52,8 @@ public class EssentialSizeServiceImpl implements EssentialSizeService {
     private EssentialSizeOverallRepository essentialSizeOverallRepository;
     private BaseRepository baseRepository;
     private MaterialityBaseRepository materialityBaseOrderRepository;
-    private BalanceSheetDictionaryRepository balanceSheetDictionaryOrderRepository;
+    private ImportantAccountRepository importantAccountRepository;
+    private ImportantAccountRedisRepository importantAccountRedisRepository;
     private ConversionService conversionService;
     private BalanceSheetUtils balanceSheetUtils;
     private FormUtils formUtils;
@@ -62,7 +66,8 @@ public class EssentialSizeServiceImpl implements EssentialSizeService {
                                     EssentialSizeOverallRepository essentialSizeOverallRepository,
                                     BaseRepository baseRepository,
                                     MaterialityBaseRepository materialityBaseOrderRepository,
-                                    BalanceSheetDictionaryRepository balanceSheetDictionaryOrderRepository,
+                                    ImportantAccountRepository importantAccountRepository,
+                                    ImportantAccountRedisRepository importantAccountRedisRepository,
                                     ConversionService conversionService, BalanceSheetUtils balanceSheetUtils,
                                     FormUtils formUtils, ProjectUtils projectUtils,
                                     BasicInfoUtils basicInfoUtils) {
@@ -71,7 +76,8 @@ public class EssentialSizeServiceImpl implements EssentialSizeService {
         this.essentialSizeOverallRepository = essentialSizeOverallRepository;
         this.baseRepository = baseRepository;
         this.materialityBaseOrderRepository = materialityBaseOrderRepository;
-        this.balanceSheetDictionaryOrderRepository = balanceSheetDictionaryOrderRepository;
+        this.importantAccountRepository = importantAccountRepository;
+        this.importantAccountRedisRepository = importantAccountRedisRepository;
         this.conversionService = conversionService;
         this.balanceSheetUtils = balanceSheetUtils;
         this.formUtils = formUtils;
@@ -282,10 +288,27 @@ public class EssentialSizeServiceImpl implements EssentialSizeService {
 
         EssentialSizePerformance essentialSizePerformance = buildEssentialSizePerformance(essentialSize);
         essentialSizePerformance.setOverAmount(essentialSizeOverall.getOverAmount());
-        if (!ObjectUtils.isEmpty(essentialSizePerformance.getPercentage()))
+        if (!ObjectUtils.isEmpty(essentialSizePerformance.getPercentage())){
+
             essentialSizePerformance.setPerAmount(NumericUtils.roundNumberToCentimeters(
                     essentialSizePerformance.getOverAmount() * essentialSizePerformance.getPercentage() / 100));
-        essentialSizePerformanceRepository.save(essentialSizePerformance);
+            essentialSizePerformance = essentialSizePerformanceRepository.save(essentialSizePerformance);
+            Optional<ImportantAccount> importantAccountOptional = importantAccountRepository
+                    .findImportantAccountByProject(essentialSize.getProject());
+            EssentialSizePerformance finalEssentialSizePerformance = essentialSizePerformance;
+            importantAccountOptional.ifPresent(importantAccount -> {
+
+                importantAccount.setPerAmount(finalEssentialSizePerformance.getPerAmount());
+                importantAccountRepository.save(importantAccount);
+                Optional<ImportantAccountRedis> importantAccountRedisOptional = importantAccountRedisRepository
+                        .findById(importantAccount.getId());
+                importantAccountRedisOptional.ifPresent(importantAccountRedis -> {
+
+                    importantAccountRedis.setPerAmount(finalEssentialSizePerformance.getPerAmount());
+                    importantAccountRedisRepository.save(importantAccountRedis);
+                });
+            });
+        }
 
         essentialSize.setOverAmount(essentialSizeOverall.getOverAmount());
         essentialSizeRepository.save(essentialSize);
