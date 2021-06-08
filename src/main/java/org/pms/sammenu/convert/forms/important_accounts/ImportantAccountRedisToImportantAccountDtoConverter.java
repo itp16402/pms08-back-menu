@@ -8,6 +8,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,7 +29,7 @@ public class ImportantAccountRedisToImportantAccountDtoConverter implements Conv
     private List<ImportantAccountAddDto> buildImportantAccountAddList(List<ImportantAccountAddRedis> importantAccountAddList,
                                                                       ImportantAccountRedis importantAccount){
 
-        return importantAccountAddList.stream()
+        return !ObjectUtils.isEmpty(importantAccountAddList) ? importantAccountAddList.stream()
                 .filter(importantAccountAdd -> importantAccountAdd.getBalanceSheetDictionary().getAmount() != 0)
                 .map(importantAccountAdd -> {
 
@@ -60,6 +61,6 @@ public class ImportantAccountRedisToImportantAccountDtoConverter implements Conv
                             .build();
                 })
                 .sorted(Comparator.comparing(ImportantAccountAddDto::getLineId))
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()) : new ArrayList<>();
     }
 }

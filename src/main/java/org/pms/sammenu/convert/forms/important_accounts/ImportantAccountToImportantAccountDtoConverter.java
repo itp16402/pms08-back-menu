@@ -27,7 +27,7 @@ public class ImportantAccountToImportantAccountDtoConverter implements Converter
     private List<ImportantAccountAddDto> buildImportantAccountAddList(List<ImportantAccountAdd> importantAccountAddList,
                                                                       ImportantAccount importantAccount){
 
-        return importantAccountAddList.stream()
+        return !ObjectUtils.isEmpty(importantAccountAddList) ? importantAccountAddList.stream()
                 .filter(importantAccountAdd -> importantAccountAdd.getBalanceSheetDictionary().getAmount() != 0)
                 .map(importantAccountAdd -> {
 
@@ -59,6 +59,6 @@ public class ImportantAccountToImportantAccountDtoConverter implements Converter
                             .build();
                 })
                 .sorted(Comparator.comparing(ImportantAccountAddDto::getLineId))
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()) : null;
     }
 }

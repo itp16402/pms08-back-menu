@@ -78,7 +78,7 @@ public class ImportantAccountServiceImpl implements ImportantAccountService {
         if (!ObjectUtils.isEmpty(status) && status.equals(FormStatus.SAVED) && importantAccountOptional.isPresent()){
 
             Optional<ImportantAccountRedis> importantAccountRedisOptional = importantAccountRedisRepository
-                    .findByProjectId(projectId);
+                    .findById(importantAccountOptional.get().getId());
 
             importantAccountDto = importantAccountRedisOptional
                     .map(importantAccount -> conversionService.convert(importantAccount, ImportantAccountDto.class))
@@ -180,8 +180,7 @@ public class ImportantAccountServiceImpl implements ImportantAccountService {
                 .importantAccountAddList(initializeImportantAccountAddList(savedImportantAccount.getImportantAccountAddList()))
                 .build();
 
-        importantAccount = importantAccountRedisRepository.save(importantAccount);
-        System.out.println(importantAccount);
+        importantAccountRedisRepository.save(importantAccount);
     }
 
     private List<ImportantAccountAdd> initializeImportantAccountAddList(List<BalanceSheetDictionary> lines,
