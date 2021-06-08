@@ -1,6 +1,7 @@
 package org.pms.sammenu.config.security;
 
 import org.pms.sammenu.config.security.filters.JwtRequestFilter;
+import org.pms.sammenu.enums.AuthorityType;
 import org.pms.sammenu.services.MyUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -37,6 +38,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
         http.csrf().disable()
                 .authorizeRequests()
+                .antMatchers("/admin/**").hasRole(AuthorityType.ADMIN.description())
                 .anyRequest().authenticated()
                 .and().sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS); // not creating a session

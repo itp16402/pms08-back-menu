@@ -16,16 +16,7 @@ public interface FormViewRepository extends JpaRepository<FormView, Long> {
                                                                            String language,
                                                                            String formType);
 
-    Optional<FormView> findByTableNameAndLanguageAndFormTypeAndKeli(String tableName,
-                                                                    String language,
-                                                                    String formType,
-                                                                    String keli);
-
-    Optional<FormView> findByTableNameAndLanguageAndFormTypeAndKeliAndInfos(String tableName,
-                                                                            String language,
-                                                                            String formType,
-                                                                            String keli,
-                                                                            String infos);
+    List<FormView> findByTableNameAndLanguageOrderBySeqOrderAsc(String tableName, String language);
 
     Optional<FormView> findByTableNameAndLanguageAndFormTypeAndTypos(String tableName,
                                                                      String language,

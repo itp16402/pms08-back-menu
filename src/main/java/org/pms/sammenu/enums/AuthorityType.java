@@ -6,7 +6,8 @@ public enum AuthorityType {
     MANAGER((short) 2, "MANAGER"),
     MEMBER((short) 3, "MEMBER"),
     EQCR((short) 4, "EQCR"),
-    PARTNER((short) 5, "PARTNER");
+    PARTNER((short) 5, "PARTNER"),
+    ADMIN((short) 6, "ADMIN");
 
     private final short code;
 

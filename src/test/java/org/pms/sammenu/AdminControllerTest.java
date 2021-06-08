@@ -18,16 +18,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@TestPropertySource(properties = {"spring.application.name=BehindScenesControllerTest",
-        "spring.jmx.default-domain=BehindScenesControllerTest"})
-public class BehindScenesControllerTest extends BasicWiremockTest {
+@TestPropertySource(properties = {"spring.application.name=AdminControllerTest",
+        "spring.jmx.default-domain=AdminControllerTest"})
+public class AdminControllerTest extends BasicWiremockTest {
 
     @Ignore
     @Test
     public void assignToManagerAllForms() throws Exception {
 
 
-        this.mockMvc.perform(post("/behind-scenes/assign-admin/all-forms")
+        this.mockMvc.perform(post("/admin/assign-manager/all-forms")
                 .header(HEADER_KEY, HEADER_VALUE))
                 .andExpect(status().isCreated())
                 .andDo(print());
