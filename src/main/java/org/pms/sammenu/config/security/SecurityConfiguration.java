@@ -38,6 +38,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
         http.csrf().disable()
                 .authorizeRequests()
+                .antMatchers("/form-views/form-type/{tableName}/{locale}/{formType}").permitAll()
                 .antMatchers("/admin/**").hasRole(AuthorityType.ADMIN.description())
                 .anyRequest().authenticated()
                 .and().sessionManagement()
