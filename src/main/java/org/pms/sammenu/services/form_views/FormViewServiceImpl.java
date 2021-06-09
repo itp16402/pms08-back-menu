@@ -189,15 +189,19 @@ public class FormViewServiceImpl implements FormViewService {
     }
 
     @Override
-    public List<String> fetchAllTableNames() {
+    public List<FormViewDto> fetchAllTableNames(Locale locale) {
 
         log.info("Find all table names of forms process start");
 
-        List<String> tableNames = formViewRepository.findAllTableNames();
+        List<FormView> tableNames = formViewRepository.findAllTableNames(locale.code());
+
+        List<FormViewDto> formViewDtoList = tableNames.stream()
+                .map(formView -> conversionService.convert(formView, FormViewDto.class))
+                .collect(Collectors.toList());
 
         log.info("Find all table names of forms process end. Size {}", tableNames.size());
 
-        return tableNames;
+        return formViewDtoList;
     }
 
     @Override

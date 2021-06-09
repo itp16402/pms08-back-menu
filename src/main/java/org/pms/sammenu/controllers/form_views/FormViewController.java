@@ -124,12 +124,12 @@ public class FormViewController {
      *
      * @return string of tableNames
      */
-    @GetMapping("/table-names")
-    List<String> findAllTableNames() {
+    @GetMapping("/table-names/{locale}")
+    List<FormViewDto> findAllTableNames(@PathVariable Locale locale) {
 
         log.info("Fetch forms[table-names]");
 
-        return formViewService.fetchAllTableNames();
+        return formViewService.fetchAllTableNames(locale);
     }
 
     /**

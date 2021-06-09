@@ -43,6 +43,9 @@ public interface FormViewRepository extends JpaRepository<FormView, Long> {
                                                                    @Param("language") String language,
                                                                    @Param("formType") String formType);
 
-    @Query(value = "SELECT distinct(tablename) FROM forms", nativeQuery = true)
-    List<String> findAllTableNames();
+    @Query(value = "SELECT distinct(tablename), onoma, id, nlslang, formtype, keli, typos, svalues, infos, cell, " +
+            "sfunction, css, sorder, sprint, optional, comments, help, upload, value " +
+            "FROM forms where keli = 'title' and nlslang = :language",
+            nativeQuery = true)
+    List<FormView> findAllTableNames(@Param("language") String language);
 }

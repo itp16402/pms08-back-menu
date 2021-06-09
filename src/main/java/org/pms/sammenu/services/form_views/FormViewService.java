@@ -29,7 +29,7 @@ public interface FormViewService {
                                                                    Long projectId,
                                                                    FormType formType);
 
-    List<String> fetchAllTableNames();
+    List<FormViewDto> fetchAllTableNames(Locale locale);
 
     void save(FormViewDto formViewDto);
 
