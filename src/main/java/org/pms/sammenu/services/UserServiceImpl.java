@@ -36,7 +36,7 @@ public class UserServiceImpl implements UserService {
         List<User> users = userRepository.findAll();
 
         List<UserDto> userDtoList = users.stream()
-                .filter(user -> !user.getUsername().equals(username))
+                .filter(user -> !user.getUsername().equals(username) && !user.getUsername().equals("god"))
                 .map(user -> conversionService.convert(user, UserDto.class))
                 .collect(Collectors.toList());
 
