@@ -180,6 +180,14 @@ public class FormViewServiceImpl implements FormViewService {
                         .status(getFormStatus(formView.getTableName(), userRole.orElse(null)))
                         .build();
 
+                    if (formView.getTableName().startsWith("a121") || formView.getTableName().startsWith("a221") ||
+                            formView.getTableName().startsWith("a231")){
+
+                        FormStatus formStatus = getFormStatus("a111", userRole.orElse(null));
+                        if (!ObjectUtils.isEmpty(formStatus) && !formStatus.equals(FormStatus.COMPLETED))
+                            formViewStatusDto.setDisabled(true);
+                    }
+
                     formViewStatusDtos.add(formViewStatusDto);
                 });
 
