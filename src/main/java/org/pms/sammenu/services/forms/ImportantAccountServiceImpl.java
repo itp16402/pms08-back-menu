@@ -75,16 +75,16 @@ public class ImportantAccountServiceImpl implements ImportantAccountService {
         Optional<ImportantAccount> importantAccountOptional = importantAccountRepository
                 .findImportantAccountByProject(project);
 
-//        if (!ObjectUtils.isEmpty(status) && status.equals(FormStatus.SAVED) && importantAccountOptional.isPresent()){
-//
-//            Optional<ImportantAccountRedis> importantAccountRedisOptional = importantAccountRedisRepository
-//                    .findById(importantAccountOptional.get().getId());
-//
-//            importantAccountDto = importantAccountRedisOptional
-//                    .map(importantAccount -> conversionService.convert(importantAccount, ImportantAccountDto.class))
-//                    .orElse(new ImportantAccountDto());
-//        }
-//        else {
+        if (!ObjectUtils.isEmpty(status) && status.equals(FormStatus.SAVED) && importantAccountOptional.isPresent()){
+
+            Optional<ImportantAccountRedis> importantAccountRedisOptional = importantAccountRedisRepository
+                    .findById(importantAccountOptional.get().getId());
+
+            importantAccountDto = importantAccountRedisOptional
+                    .map(importantAccount -> conversionService.convert(importantAccount, ImportantAccountDto.class))
+                    .orElse(new ImportantAccountDto());
+        }
+        else {
 
             if (!importantAccountOptional.isPresent())
                 importantAccountOptional = Optional.ofNullable(initialSave(project));
@@ -92,7 +92,7 @@ public class ImportantAccountServiceImpl implements ImportantAccountService {
             importantAccountDto = importantAccountOptional
                     .map(importantAccount -> conversionService.convert(importantAccount, ImportantAccountDto.class))
                     .orElse(new ImportantAccountDto());
-//        }
+        }
 
         importantAccountDto.setStatus(status);
 
@@ -112,22 +112,22 @@ public class ImportantAccountServiceImpl implements ImportantAccountService {
         Double performanceMateriality = essentialSizeUtils.getPerformanceMateriality(projectId);
         performanceMateriality = !ObjectUtils.isEmpty(performanceMateriality) ? performanceMateriality : 0.0;
 
-//        if (!ObjectUtils.isEmpty(importantAccountRequestDto.getStatus()) &&
-//                importantAccountRequestDto.getStatus().equals(FormStatus.SAVED)){
-//
-//            ImportantAccountRedis importantAccount = ImportantAccountRedis.builder()
-//                    .id(importantAccountRequestDto.getId())
-//                    .perAmount(performanceMateriality)
-//                    .projectId(projectId)
-//                    .build();
-//
-//            importantAccount.setImportantAccountAddList(buildImportantAccountAddList(importantAccountRequestDto));
-//
-//            ImportantAccountRedis savedImportantAccount = importantAccountRedisRepository.save(importantAccount);
-//
-//            log.info("Save new ImportantAccount[id: {}] end", savedImportantAccount.getId());
-//        }
-//        else {
+        if (!ObjectUtils.isEmpty(importantAccountRequestDto.getStatus()) &&
+                importantAccountRequestDto.getStatus().equals(FormStatus.SAVED)){
+
+            ImportantAccountRedis importantAccount = ImportantAccountRedis.builder()
+                    .id(importantAccountRequestDto.getId())
+                    .perAmount(performanceMateriality)
+                    .projectId(projectId)
+                    .build();
+
+            importantAccount.setImportantAccountAddList(buildImportantAccountAddList(importantAccountRequestDto));
+
+            ImportantAccountRedis savedImportantAccount = importantAccountRedisRepository.save(importantAccount);
+
+            log.info("Save new ImportantAccount[id: {}] end", savedImportantAccount.getId());
+        }
+        else {
 
             Project project = projectUtils.fetchProject(projectId);
 
@@ -143,7 +143,7 @@ public class ImportantAccountServiceImpl implements ImportantAccountService {
             ImportantAccount savedImportantAccount = importantAccountRepository.save(importantAccount);
 
             log.info("Save new ImportantAccount[id: {}] end", savedImportantAccount.getId());
-//        }
+        }
 
         formUtils.changeFormStatus(request, projectId, formListId, importantAccountRequestDto.getStatus());
     }
