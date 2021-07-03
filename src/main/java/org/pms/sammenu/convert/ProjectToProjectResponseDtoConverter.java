@@ -22,9 +22,6 @@ public class ProjectToProjectResponseDtoConverter implements Converter<Project, 
                 .status(project.getStatus())
                 .orderTypeDescription(project.getOrderTypeDescription())
                 .orderTypeComments(project.getOrderTypeComments())
-                .roles(project.getAuthorities().stream()
-                        .map(authority -> AuthorityType.fromCode(authority.getId()))
-                        .collect(Collectors.toSet()))
                 .build();
     }
 }

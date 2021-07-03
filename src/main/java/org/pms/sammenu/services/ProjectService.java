@@ -10,5 +10,5 @@ public interface ProjectService {
 
     List<ProjectResponseDto> fetchProjectsByUsername(String username);
 
-    ProjectResponseDto fetchProjectById(Long id);
+    ProjectResponseDto fetchProjectById(String username, Long id);
 }

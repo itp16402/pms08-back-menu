@@ -36,6 +36,6 @@ public class ProjectController {
 
         log.info("Fetch Project[{}]", projectId);
 
-        return projectService.fetchProjectById(projectId);
+        return projectService.fetchProjectById(username, projectId);
     }
 }
