@@ -34,7 +34,7 @@ public class UserController {
         return userService.fetchUsers(username);
     }
 
-    @GetMapping(value = "/search/{username}{lastName}/",
+    @GetMapping(value = "/search/{username}{lastName}",
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     List<UserDto> search(@PathVariable("username") String username,
                          @PathVariable("lastName") String lastName,
