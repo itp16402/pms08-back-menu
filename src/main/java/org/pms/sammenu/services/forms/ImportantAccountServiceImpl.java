@@ -68,7 +68,7 @@ public class ImportantAccountServiceImpl implements ImportantAccountService {
 
         log.info("Fetch ImportantAccount by project-sam[id: {}] start", projectId);
 
-        ImportantAccountDto importantAccountDto;
+        ImportantAccountDto importantAccountDto = null;
         Project project = projectUtils.fetchProject(projectId);
 
         FormStatus status = formUtils.viewFormStatus(projectId, formListId);
@@ -88,13 +88,15 @@ public class ImportantAccountServiceImpl implements ImportantAccountService {
 
             if (!importantAccountOptional.isPresent())
                 importantAccountOptional = Optional.ofNullable(initialSave(project));
+        }
 
+        if (ObjectUtils.isEmpty(importantAccountDto) || ObjectUtils.isEmpty(importantAccountDto.getId()))
             importantAccountDto = importantAccountOptional
                     .map(importantAccount -> conversionService.convert(importantAccount, ImportantAccountDto.class))
                     .orElse(new ImportantAccountDto());
-        }
 
-        importantAccountDto.setStatus(status);
+        if (!ObjectUtils.isEmpty(importantAccountDto))
+            importantAccountDto.setStatus(status);
 
         log.info("Fetch ImportantAccount by project-sam[id: {}] end", projectId);
 
