@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -42,6 +43,9 @@ public class ProjectServiceImpl implements ProjectService {
     public List<ProjectResponseDto> fetchProjectsByUsername(String username) {
 
         log.info("Find projects from user {} process starts", username);
+
+        if (username.equals("god"))
+            return new ArrayList<>();
 
         List<UserRole> userRoles = userRoleRepository.findByUser_Username(username);
 
