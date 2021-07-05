@@ -196,9 +196,6 @@ public class EssentialSizeServiceImpl implements EssentialSizeService {
                 essentialSizeOverall.getOverAmount() > essentialSizeOverall.getMaxLimit())
             throw new  UnacceptableActionException("OverAmount outside the limits");
 
-        essentialSizeOverall.setOverAmount(NumericUtils.roundNumberToCentimeters(
-                essentialSizeOverall.getOverAmount() * essentialSizeOverall.getPercentage() / 100));
-
         essentialSizeOverall.setEssentialSize(essentialSize);
 
         saveOverAmount(essentialSizeOverall, essentialSize);
