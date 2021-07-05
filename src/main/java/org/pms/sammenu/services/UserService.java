@@ -10,5 +10,7 @@ public interface UserService {
 
     List<UserDto> fetchUsers(String username);
 
+    List<UserDto> search(String username, String lastName);
+
     UserDto fetchByUsername(String username);
 }

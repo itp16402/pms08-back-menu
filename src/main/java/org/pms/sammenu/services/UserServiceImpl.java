@@ -46,6 +46,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<UserDto> search(String username, String lastName) {
+
+        log.info("Search Users by starting lastName[{}] process starts", lastName);
+
+        List<User> users = userRepository.findByLastNameStartingWithIgnoreCase(lastName);
+
+        List<UserDto> userDtoList = users.stream()
+                .filter(user -> !user.getUsername().equals(username) && !user.getUsername().equals("god"))
+                .map(user -> conversionService.convert(user, UserDto.class))
+                .collect(Collectors.toList());
+
+        log.info("Search Users by starting lastName[{}] process end", lastName);
+
+        return userDtoList;
+    }
+
+    @Override
     public UserDto fetchByUsername(String username) {
 
         log.info("Fetch User[{}] process starts", username);
